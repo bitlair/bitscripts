@@ -1,0 +1,26 @@
+#!/bin/bash
+#* * * * * bitlair curl http://192.168.88.10:5000/status > /dev/null 2>&1 ; sleep 30 ; curl http://192.168.88.10:5000/status > /dev/null 2>&1
+
+interval=300
+
+while [ true ]; do
+  if [ `curl http://bitlair.nl/state 2> /dev/null || true`"x" = "1x" ]; then
+    echo "open, pinging fookebox for" $interval "seconds"
+    now=`date +%s`
+    let "end=now+interval"
+    let "oldremaining=end-now"
+    while [ $now -lt $end ]; do
+      curl http://127.0.0.1:5000/status > /dev/null 2>&1 || true
+      sleep 0.5;
+      now=`date +%s`
+      let "remaining=end-now"
+      if [ $remaining -ne $oldremaining ]; then
+        echo $remaining seconds remaining
+        oldremaining=$remaining
+      fi
+    done
+  else
+    echo "closed, sleeping" $interval "seconds"
+    sleep $interval
+  fi
+done
